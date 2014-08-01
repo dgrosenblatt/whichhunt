@@ -1,0 +1,71 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+	then
+		echo "Takes file name or list of file names and determines which would be executed had these names been given as commands."
+		echo "usage: whichhunt [-a] program ..."
+		exit 1
+fi
+
+options=
+
+if [ $1 = -a ]
+	then
+	options=$1
+	shift
+fi	
+
+start=`pwd`
+args="$@"
+
+for name in $args # iterate through each argument passed from command line
+	do
+		response=
+
+		for dir in `echo $PATH|sed -e 's/::/:.:/' -e 's/^:/.:/' -e 's/:$/:./' -e 's/:/ /g'` # iterate through each dir on PATH
+			do
+				if [ `echo $name|grep "/"` ] && [ -x "$name" ] && [ ! -d "$name" ] # or not if / in arguments
+					then
+					response=$name
+					break
+				fi
+
+				if [ -z $options ] && [ "$response" ] # options- just first match or all?
+					then
+					break
+				fi
+
+				if [ $dir = "." ]
+					then
+						cd $start
+					else
+						cd $dir
+					fi
+
+				contents=`echo *`
+
+				for file in $contents # iterate through each file in dir
+					do
+						if [ -z $options ] && [ "$response" ]
+							then
+							break
+						fi
+
+						if [ $name = $file ] && [ -x $file ]
+							then
+							response="${response} ${dir}/${name}"
+						fi
+					done
+			done
+
+		if [ "$response" ]
+			then
+			for found in $response
+				do
+					echo $found
+				done
+		else
+			echo "$name not found."
+		fi
+
+	done
