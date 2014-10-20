@@ -10,4 +10,5 @@ usage: whichhunt [-a] command ....
 Example:
 
 $ whichhunt ls
+
 /bin/ls
